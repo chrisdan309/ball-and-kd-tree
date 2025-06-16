@@ -64,3 +64,23 @@ class KDTree:
         heap = []
         self._knn(self.root, target, k, heap, 0)
         return sorted([(-d, pt) for d, pt in heap])
+
+    def insert(self, point: Tuple[float]):
+        if self.k == 0:
+            self.k = len(point)
+
+        if len(point) != self.k:
+            raise ValueError("Invalid point dimensions.")
+
+        self.root = self._insert(self.root, point, depth=0)
+
+    def _insert(self, node: Optional[KDNode], point: Tuple[float], depth: int) -> KDNode:
+        if node is None:
+            return KDNode(point=point, axis=depth % self.k)
+            
+        axis = node.axis
+        if point[axis] < node.point[axis]:
+            node.left = self._insert(node.left, point, depth + 1)
+        else:
+            node.right = self._insert(node.right, point, depth + 1)
+        return node
