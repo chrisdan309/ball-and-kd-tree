@@ -1,5 +1,5 @@
 from kd_tree.kd_tree import KDTree
-import math
+
 def test_tree_construction_2d():
     points = [(2.0, 3.0), (5.0, 4.0), (9.0, 6.0)]
     tree = KDTree(points)
