@@ -19,3 +19,9 @@ Generate datasets
 ```sh
 python tests/generate_points.py
 ```
+
+Run dimensional Analysis
+
+```sh
+python -m tests.dimension_analysis
+```
