@@ -1,5 +1,5 @@
 from kd_tree.kd_tree import KDTree
-
+import math
 def test_tree_construction_2d():
     points = [(2.0, 3.0), (5.0, 4.0), (9.0, 6.0)]
     tree = KDTree(points)
@@ -60,3 +60,54 @@ def test_k_nearest_neighbors():
     neighbor_points = [pt for _, pt in neighbors]
     assert (2, 2) in neighbor_points
     assert (3, 3) in neighbor_points
+
+
+def test_no_rebuild_below_threshold():
+    n = 4
+    # n=4 -> log2(4)=2 -> 2^2 = 4
+    points = [(i, i + 1) for i in range(n)]
+    tree = KDTree(points)
+    # After inserting 3 points, it should not rebuild
+    for i in range(3):  
+        tree.insert((100 + i, 200 + i))
+    assert tree.last_insertions == 3
+    assert not tree.check_rebuild()
+
+
+def test_rebuild_at_threshold():
+    n = 4
+    # n=4 -> log2(4)=2 -> 2^2 = 4
+    points = [(i, i + 1) for i in range(n)]
+    tree = KDTree(points)
+    # After inserting 4 points, it should rebuild
+    for i in range(4):
+        tree.insert((10 + i, 20 + i))
+    assert tree.last_insertions == 0
+
+
+def test_rebuild_above_threshold():
+    n = 4
+    # n=4 -> log2(4)=2 → 2^2 = 4
+    points = [(i, i + 1) for i in range(n)]
+    tree = KDTree(points)
+    # After inserting 5 points, it should rebuild
+    for i in range(5):
+        tree.insert((10 + i, 20 + i))
+    assert tree.last_insertions == 1
+
+
+def test_rebuild_with_small_tree():
+    # n = 1 -> 2^0 = 1
+    tree = KDTree([(1, 2)])
+    # Inserting a second point should trigger a rebuild
+    tree.insert((3, 4))
+    assert tree.last_insertions == 0
+
+
+def test_multiple_insertions_then_rebuild():
+    points = [(0, 0), (1, 1)]
+    tree = KDTree(points)
+    tree.insert((10, 20))
+    assert tree.last_insertions == 1
+    tree.insert((11, 21))
+    assert tree.last_insertions == 0

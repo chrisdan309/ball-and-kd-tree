@@ -1,10 +1,13 @@
 import heapq
 from typing import List, Tuple, Optional
 from kd_tree.kd_node import KDNode
+import math
 
 class KDTree:
     def __init__(self, points: List[Tuple[float]]):
+        self.points = list(points)
         self.k = len(points[0]) if points else 0
+        self.last_insertions = 0
         self.root = self.build(points, depth=0)
 
     def build(self, points: List[Tuple[float]], depth: int) -> Optional[KDNode]:
@@ -64,7 +67,7 @@ class KDTree:
         heap = []
         self._knn(self.root, target, k, heap, 0)
         return sorted([(-d, pt) for d, pt in heap])
-
+    
     def insert(self, point: Tuple[float]):
         if self.k == 0:
             self.k = len(point)
@@ -72,7 +75,15 @@ class KDTree:
         if len(point) != self.k:
             raise ValueError("Invalid point dimensions.")
 
-        self.root = self._insert(self.root, point, depth=0)
+        self.last_insertions += 1
+        if self.check_rebuild():
+            self.points.append(point)
+            self.rebuild()
+        else:
+            self.points.append(point)
+            self.root = self._insert(self.root, point, depth=0)
+
+
 
     def _insert(self, node: Optional[KDNode], point: Tuple[float], depth: int) -> KDNode:
         if node is None:
@@ -84,3 +95,15 @@ class KDTree:
         else:
             node.right = self._insert(node.right, point, depth + 1)
         return node
+
+    def check_rebuild(self) -> bool:
+        n = len(self.points)
+        if n == 0:
+            return False
+        h = math.floor(math.log2(n))
+        threshold = 2 ** h
+        return self.last_insertions >= threshold
+
+    def rebuild(self):
+        self.root = self.build(self.points, depth=0)
+        self.last_insertions = 0
